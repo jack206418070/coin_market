@@ -4,5 +4,4 @@ flask_cors
 pyotp
 qrcode
 pymongo
-bson
 datetime
