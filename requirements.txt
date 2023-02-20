@@ -3,7 +3,6 @@ openai
 flask_cors
 pyotp
 qrcode
-hashlib
 pymongo
-bson.objectid
+bson
 datetime
