@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./flex.css" class="css">
+  <title>排版-練習</title>
+</head>
+
+<body>
+  <div id="app">
+    <div class="outer">
+      <div class="row-1" :class="classArr[0]+' '+classArr[1]+' '+classArr[2]">
+        <!-- <div class="row-1"> -->
+        <div class="hLine" :class="lineClass"></div>
+        <div class="box">1</div>
+        <div class="box brown">2</div>
+        <div class="box blue">3</div>
+        <div class="box green">4</div>
+      </div>
+    </div>
+    <div class="control">
+      <div class="form-control">
+        <label for="jy">justify-content:</label>
+        <select name="jy" id="jy" v-model="classArr[0]">
+          <option value="jy-content-start">justify-content:flex-start</option>
+          <option value="jy-content-center">justify-content:flex-center</option>
+          <option value="jy-content-end">justify-content:flex-end</option>
+        </select>
+      </div>
+      <div class="form-control">
+        <label for="jy">align-items:</label>
+        <select name="jy" id="jy" v-model="classArr[1]">
+          <option value="align-items-start">align-items:flex-start</option>
+          <option value="align-items-center">align-items:flex-center</option>
+          <option value="align-items-end">align-items:flex-end</option>
+        </select>
+      </div>
+      <div class="form-control">
+        <label for="jy">flex-direction:</label>
+        <select name="jy" id="jy" v-model="classArr[2]">
+          <option value="dir-row">flex-direction:row</option>
+          <option value="dir-row-reverse">flex-direction:row-reverse</option>
+          <option value="dir-column">flex-direction:column</option>
+          <option value="dir-column-reverse">flex-direction:column-reverse</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+
+  <script src="https://unpkg.com/vue@next"></script>
+  <script>
+    const app = Vue.createApp({
+      data() {
+        return {
+          classArr: ['jy-content-start', 'align-items-start', 'dir-row'],
+        }
+      },
+      computed: {
+        lineClass() {
+          let classStr = ``
+          classStr += this.classArr[1].split('-')[2]
+          if (this.classArr[2].split('-').length > 2) {
+            classStr += ' ' + this.classArr[2].split('-')[2]
+          }
+          return classStr
+        }
+      }
+    })
+    app.mount('#app')
+  </script>
+</body>
+
+</html>
