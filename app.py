@@ -250,106 +250,51 @@ def admin_order():
 # 管理員-管理員帳號管理
 @app.route('/admin_user', methods=['GET', 'POST'])
 def admin_user():
-  if 'display_name' in session and session['display_name'] == '最高管理者':
+  if 'display_name' in session:
     if request.method == 'POST':
       name = request.form['name']
-      account = request.form['account']
-      id = request.form['id']
-      password = request.form['password']
       display_name = request.form['display_name']
-      
-      if id == '':
-        user_data = dbs.admin.find_one({ "account": account })
+      account = request.form['account']
+      password = request.form['password']
+      id = request.form['id']
+      if request.form['id'] == '':
+        user_data = db.find_one({ "collect": "admin", "condition": [{ "account": account  }] })
         if user_data != None:
           return redirect('admin_user')
-        salt = '&*(%^)&&&^'
+        salt = '&)*&$%O*&*'
         password_str = password + salt
         user_password = hashlib.sha1(password_str.encode('utf-8'))
-        dbs.admin.insert_one({
+        password = user_password.hexdigest()
+        data = {
           "name": name,
+          "password": password,
+          "display_name": display_name,
           "account": account,
-          "password": user_password.hexdigest(),
-          "salt": salt,
-          "display_name": display_name
-        })
+          "salt": salt
+        }
+        db.insert_one({ "collect": "admin", "condition": [data] })
         return redirect('admin_user')
       else:
-        user_data = dbs.admin.find_one({ "_id": ObjectId(id) })
-        if user_data['password'] != password:
-          password_str = password + user_data['salt']
+        user_data = db.find_one({ "collect": "admin", "condition": [{ "_id": ObjectId(id) }] })
+        if password != user_data['password']:
+          password_str = password + user_data["salt"]
           user_password = hashlib.sha1(password_str.encode('utf-8'))
           password = user_password.hexdigest()
-        dbs.admin.update_one(
-          {
-            "_id": ObjectId(id)
-          },
-          {
-            "$set": {
-              "name": name,
-              "password": password,
-              "display_name": display_name
-            }
-          }
-        )
-        return redirect('admin_user')
+        data = {
+          "name": name,
+          "password": password,
+          "display_name": display_name
+        }
+        db.update_one({ "collect": "admin", "condition": [{ "_id": ObjectId(id) }, { "$set": data }] })
+      return redirect('admin_user')
     else:
       if request.args.get('methods') == 'delete':
-        dbs.admin.delete_one({ "_id": ObjectId(request.args.get('id')) })
-
-      user_data = []
-      user_find = dbs.admin.find()
-      for doc in user_find:
-        doc['_id'] = str(doc['_id'])
-        user_data.append(doc)
+        db.delete_one({ "collect": "admin", "condition": [{ "_id": ObjectId(request.args.get('id')) }] })
+      user_data = db.find_all({ "collect": "admin", "condition": [{}] })
       return render_template('admin_user.html', user_data=user_data)
   else:
-    return redirect('admin_dashboard')
+    return redirect('admin_login')
 
-
-
-# @app.route('/admin_user', methods=['GET', 'POST'])
-# def admin_user():
-#   if 'display_name' in session:
-#     if request.method == 'POST':
-#       name = request.form['name']
-#       display_name = request.form['display_name']
-#       password = request.form['password']
-#       id = request.form['id']
-#       if request.form['id'] == '':
-#         salt = '&)*&$%O*&*'
-#         password_str = password + salt
-#         user_password = hashlib.sha1(password_str.encode('utf-8'))
-#         password = user_password.hexdigest()
-#         account = request.form['account']
-#         data = {
-#           "name": name,
-#           "password": password,
-#           "display_name": display_name,
-#           "account": account,
-#           "salt": salt
-#         }
-#         db.insert_one({ "collect": "admin", "condition": [data] })
-#         return redirect('admin_user')
-#       else:
-#         user_data = db.find_one({ "collect": "admin", "condition": [{ "_id": ObjectId(id) }] })
-#         if password != user_data['password']:
-#           password_str = password + user_data["salt"]
-#           user_password = hashlib.sha1(password_str.encode('utf-8'))
-#           password = user_password.hexdigest()
-#         data = {
-#           "name": name,
-#           "password": password,
-#           "display_name": display_name
-#         }
-#         db.update_one({ "collect": "admin", "condition": [{ "_id": ObjectId(id) }, { "$set": data }] })
-#       return redirect('admin_user')
-#     else:
-#       if request.args.get('methods') == 'delete':
-#         db.delete_one({ "collect": "admin", "condition": [{ "_id": ObjectId(request.args.get('id')) }] })
-#       user_data = db.find_all({ "collect": "admin", "condition": [{}] })
-#       return render_template('admin_user.html', user_data=user_data)
-#   else:
-#     return redirect('admin_login')
 # 業務登入頁面
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -462,26 +407,78 @@ def profile():
     return render_template('profile.html', member_data=member_data)
   return redirect('login')
 
-@app.route('/resetPassword', methods=['POST', 'GET'])
+
+
+
+
+
+
+
+@app.route('/resetPassword', methods=['GET', 'POST'])
 def resetPassword():
   if 'id' in session:
     if request.method == 'POST':
       old_password = request.form['oldPassword']
       password = request.form['password']
       repeat_password = request.form['repeatPassword']
-      
-      member_data = db.find_one({ "collect": "member", "condition": [{ "_id": ObjectId(session['id']) }]})
-      if member_data['password'] == old_password and password == repeat_password:
+      member_data = dbs.member.find_one({ "_id": ObjectId(session['id']) })
+      old_password_str = old_password + member_data['salt']
+      old_password = hashlib.sha1(old_password_str.encode('utf-8'))
+
+      if member_data['password'] == old_password.hexdigest() and password == repeat_password:
         password_str = password + member_data['salt']
         user_password = hashlib.sha1(password_str.encode('utf-8'))
-        db.update_one({ "collect": "member", "condition": [{ "_id": ObjectId(member_data['_id']) }, { "$set": { "password": user_password.hexdigest() } }] })
+        dbs.member.update_one(
+          {
+            "_id": ObjectId(session['id'])
+          },
+          {
+            "$set": {
+              "password": user_password.hexdigest()
+            }
+          }
+        )
+        session.clear()
         return redirect('login')
       else:
-        return redirect('resetPassword')
+        return redirect('resetPassword')  
     else:
       return render_template('resetPassword.html')
   else:
     return redirect('login')
+
+
+
+
+
+
+
+
+
+
+
+
+
+# @app.route('/resetPassword', methods=['POST', 'GET'])
+# def resetPassword():
+#   if 'id' in session:
+#     if request.method == 'POST':
+#       old_password = request.form['oldPassword']
+#       password = request.form['password']
+#       repeat_password = request.form['repeatPassword']
+      
+#       member_data = db.find_one({ "collect": "member", "condition": [{ "_id": ObjectId(session['id']) }]})
+#       if member_data['password'] == old_password and password == repeat_password:
+#         password_str = password + member_data['salt']
+#         user_password = hashlib.sha1(password_str.encode('utf-8'))
+#         db.update_one({ "collect": "member", "condition": [{ "_id": ObjectId(member_data['_id']) }, { "$set": { "password": user_password.hexdigest() } }] })
+#         return redirect('login')
+#       else:
+#         return redirect('resetPassword')
+#     else:
+#       return render_template('resetPassword.html')
+#   else:
+#     return redirect('login')
 
 
 # 業務購物車頁面    
