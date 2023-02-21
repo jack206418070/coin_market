@@ -1,0 +1,180 @@
+* {
+  box-sizing: border-box;
+}
+.outer {
+  width: 50%;
+  margin: 0 auto;
+  border: 2px solid gray;
+  height: 500px;
+}
+.row-1 {
+  height: 500px;
+  display: flex;
+  position: relative;
+
+
+  /* justify-content: center;
+  justify-content: flex-end;
+  justify-content: flex-start;
+
+  align-items: center;
+  align-items: flex-start;
+  align-items: flex-end;
+
+  flex-direction: column;
+  flex-direction: row;
+  flex-direction: column-reverse;
+  flex-direction: row-reverse;
+
+  flex-wrap: wrap;
+  flex-wrap: nowrap; */
+}
+.jy-content-start {
+  justify-content: flex-start;
+}
+.jy-content-center {
+  justify-content: center;
+}
+.jy-content-end {
+  justify-content: flex-end;
+}
+.align-items-start {
+  align-items: flex-start;
+}
+.align-items-center {
+  align-items: center;
+}
+.align-items-end {
+  align-items: flex-end;
+}
+.dir-row {
+  flex-direction: row;
+}
+.dir-row-reverse {
+  flex-direction: row-reverse;
+}
+.dir-column {
+  flex-direction: column;
+}
+.dir-column-reverse {
+  flex-direction: column-reverse;
+}
+
+.box {
+  width: 100px;
+  height: 100px;
+  background-color: #000;
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.box.brown {
+  background-color: brown;
+}
+.box.blue {
+  background-color: blue;
+}
+.box.green {
+  background-color: green;
+}
+
+
+.row-1 .hLine.start {
+  position: absolute;
+  top: 30px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: red;
+  height: 5px;
+  width: 100%;
+}
+.row-1 .hLine.center {
+  position: absolute;
+  top: calc(50% - 20px);
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: red;
+  height: 5px;
+  width: 100%;
+}
+.row-1 .hLine.end {
+  position: absolute;
+  top: calc(100% - 30px);
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: red;
+  height: 5px;
+  width: 100%;
+}
+.row-1 .hLine:before {
+  position: absolute;
+  content: "";
+  right: 0;
+  top: -8px;
+  bottom: 0;
+  margin: auto;
+  height: 5px;
+  width: 20px;
+  background-color: red;
+  transform: rotate(30deg);
+}
+.row-1 .hLine:after {
+  position: absolute;
+  content: "";
+  right: 0;
+  top: 8px;
+  bottom: 0;
+  margin: auto;
+  height: 5px;
+  width: 20px;
+  background-color: red;
+  transform: rotate(-30deg);
+}
+.row-1 .hLine.reverse:before {
+  position: absolute;
+  content: "";
+  left: 0;
+  right: auto;
+  top: -8px;
+  bottom: 0;
+  margin: auto;
+  height: 5px;
+  width: 20px;
+  background-color: red;
+  transform: rotate(150deg);
+}
+.row-1 .hLine.reverse:after {
+  position: absolute;
+  content: "";
+  left: 0;
+  right: auto;
+  top: 8px;
+  bottom: 0;
+  margin: auto;
+  height: 5px;
+  width: 20px;
+  background-color: red;
+  transform: rotate(-150deg);
+}
+
+.control {
+  width: 50%;
+  margin: 0 auto;
+  margin-top: 50px;
+}
+.form-control {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+}
+.form-control label{
+  width: 20%;
+  padding-right: 15px;
+}
+.form-control select {
+  padding: 10px;
+}
