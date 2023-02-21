@@ -406,78 +406,36 @@ def profile():
     return render_template('profile.html', member_data=member_data)
   return redirect('login')
 
-
-
-
-
-
-
-
-@app.route('/resetPassword', methods=['GET', 'POST'])
+# 修改密碼
+@app.route('/resetPassword', methods=['POST', 'GET'])
 def resetPassword():
   if 'id' in session:
     if request.method == 'POST':
       old_password = request.form['oldPassword']
       password = request.form['password']
       repeat_password = request.form['repeatPassword']
-      member_data = dbs.member.find_one({ "_id": ObjectId(session['id']) })
-      old_password_str = old_password + member_data['salt']
+      member_data = db.find_one({ "collect": "member", "condition": [{ "_id": ObjectId(session['id']) }]})
+      old_password_str = old_password + member_data['slat']
       old_password = hashlib.sha1(old_password_str.encode('utf-8'))
-
       if member_data['password'] == old_password.hexdigest() and password == repeat_password:
         password_str = password + member_data['salt']
         user_password = hashlib.sha1(password_str.encode('utf-8'))
-        dbs.member.update_one(
-          {
-            "_id": ObjectId(session['id'])
-          },
-          {
-            "$set": {
-              "password": user_password.hexdigest()
-            }
-          }
-        )
-        session.clear()
+        db.update_one({ "collect": "member", "condition": [{ "_id": ObjectId(member_data['_id']) }, { "$set": { "password": user_password.hexdigest() } }] })
         return redirect('login')
       else:
-        return redirect('resetPassword')  
+        return redirect('resetPassword')
     else:
       return render_template('resetPassword.html')
   else:
     return redirect('login')
 
-
-
-
-
-
-
-
-
-
-
-
-
-# @app.route('/resetPassword', methods=['POST', 'GET'])
-# def resetPassword():
-#   if 'id' in session:
-#     if request.method == 'POST':
-#       old_password = request.form['oldPassword']
-#       password = request.form['password']
-#       repeat_password = request.form['repeatPassword']
-      
-#       member_data = db.find_one({ "collect": "member", "condition": [{ "_id": ObjectId(session['id']) }]})
-#       if member_data['password'] == old_password and password == repeat_password:
-#         password_str = password + member_data['salt']
-#         user_password = hashlib.sha1(password_str.encode('utf-8'))
-#         db.update_one({ "collect": "member", "condition": [{ "_id": ObjectId(member_data['_id']) }, { "$set": { "password": user_password.hexdigest() } }] })
-#         return redirect('login')
-#       else:
-#         return redirect('resetPassword')
-#     else:
-#       return render_template('resetPassword.html')
-#   else:
-#     return redirect('login')
+# 創立訂單頁面
+@app.route('/order_list')
+def order_list():
+  if 'id' in session:
+    return render_template('order_custom.html')
+  else:
+    return register('login')
 
 
 # 業務購物車頁面    
