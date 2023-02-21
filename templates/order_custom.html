@@ -359,11 +359,11 @@
       </div>
       <div class="c_data">
         <div class="c_data-item">
-          <p>收件人: {{ order_list.c_name }}</p>
-          <p>手機號: {{ order_list.phone_number }}</p>
+          <p>收件人: [[ order_list.c_name ]]</p>
+          <p>手機號: [[ order_list.phone_number ]]</p>
         </div>
         <div class="c_data-item">
-          <p>{{ order_list.address }}</p>
+          <p>[[ order_list.address ]]</p>
         </div>
       </div>
       <hr>
@@ -372,22 +372,22 @@
           <img :src="order_list.p_img" alt="">
         </div>
         <div class="name">
-          <p>{{ order_list.p_name }}</p>
+          <p>[[ order_list.p_name ]]</p>
         </div>
         <div class="price-qty">
-          <p>${{ order_list.p_price }}</p>
-          <p>x{{ order_list.p_qty }}</p>
+          <p>$[[ order_list.p_price ]]</p>
+          <p>x[[ order_list.p_qty ]]</p>
         </div>
       </div>
       <div class="order-profile">
         <h1>訂單信息</h1>
         <p>
           <span>訂單編號:</span>
-          <span>{{ order_list.pay_no }}</span>
+          <span>[[ order_list.pay_no ]]</span>
         </p>
         <p>
           <span>下單時間:</span>
-          <span>{{ order_list.pay_time }}</span>
+          <span>[[ order_list.pay_time ]]</span>
         </p>
         <p>
           <span>訂單類型:</span>
@@ -395,15 +395,15 @@
         </p>
         <p>
           <span>付款人姓名:</span>
-          <span>{{ order_list.pay_name }}</span>
+          <span>[[ order_list.pay_name ]]</span>
         </p>
         <p>
           <span>支付狀態:</span>
-          <span>{{ order_list.status }}</span>
+          <span>[[ order_list.status ]]</span>
         </p>
         <p>
           <span>支付方式:</span>
-          <span>{{ order_list.pay_method }}</span>
+          <span>[[ order_list.pay_method ]]</span>
         </p>
       </div>
       <a href="#" class="order-btn">確認收款</a>
@@ -422,8 +422,11 @@
           is_modal: false
         }
       },
+      compilerOptions: {
+        delimiters: ["[[", "]]"]
+      },
       methods: {
-        modalControl (type) {
+        modalControl(type) {
           this.is_modal = type;
         }
       }
