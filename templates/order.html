@@ -59,6 +59,15 @@
             {% endif %}
           </span>
         </p>
+        {% if item.prove_img == "" %}
+          <form action="/order_prove" method="post" enctype='multipart/form-data'>
+            <input type="file" style="margin-bottom: 10px;" name="prove_img">
+            <input type="hidden" name="oId" value="{{ item._id }}">
+            <button type="submit" style="margin-left: auto; margin-right: 0; width: 35%; display: block;">上傳轉帳證明</button>
+          </form>
+        {% else %}
+          <p>已上傳轉帳證明-等待通知</p>
+        {% endif %}
       </li>
       {% endfor %}
     </ul>

@@ -429,13 +429,21 @@ def resetPassword():
   else:
     return redirect('login')
 
-# 創立訂單頁面
+
 @app.route('/order_list')
 def order_list():
   if 'id' in session:
     return render_template('order_custom.html')
   else:
-    return register('login')
+    return redirect('login')
+
+# 創立訂單頁面
+# @app.route('/order_list')
+# def order_list():
+#   if 'id' in session:
+#     return render_template('order_custom.html')
+#   else:
+#     return register('login')
 
 
 # 業務購物車頁面    
@@ -486,7 +494,8 @@ def cart(product):
           {
             "product_id": ObjectId(product),
             "mid": ObjectId(request.args.get('mid')),
-            "is_paid": False
+            "is_paid": False,
+            "prove_img": ""
           }
         )
 
@@ -523,5 +532,62 @@ def order():
   else:
     return redirect('login')
 
+
+
+@app.route('/order_prove', methods=['POST'])
+def order_prove():
+  if 'id' in session:
+    oId = request.form['oId']
+    f = request.files['prove_img']
+    mid = session['id']
+    member_data = dbs.member.find_one({ "_id": ObjectId(mid) })
+    account = member_data['account']
+    imgUrl = ''
+
+    if f and allowed_file(f.filename):
+      file_path = basedir + '/public/images/' + account
+      if not os.path.isdir(file_path):
+        os.mkdir(file_path)
+      f.save(os.path.join(file_path, f.filename))
+      imgUrl = f'/images/{account}/{f.filename}'
+    
+    dbs.order.update_one(
+      {
+        "_id": ObjectId(oId)
+      },
+      {
+        "$set": {
+          "prove_img": imgUrl
+        }
+      }
+    )
+
+
+    return redirect('order')
+  else:
+    return redirect('login')
+
+
+
+
+# @app.route('/order_prove', methods=['POST'])
+# def order_prove():
+#   if 'id' in session:
+#     member_data = db.find_one({ "collect": "member", "condition": [{ "_id": ObjectId(session['id']) }] })
+#     account = member_data["account"]
+#     oId = request.form['oId']
+#     f = request.files['prove_img']
+#     imgUrl = ''
+#     if f and allowed_file(f.filename):
+#       file_path = basedir + '/public/images/' + account
+#       if not os.path.isdir(file_path):
+#         os.mkdir(file_path)
+#       f.save(os.path.join(file_path, f.filename))
+#       imgUrl = f'/images/{account}/{f.filename}'
+#     db.update_one({ "collect": "order", "condition": [{ "_id": ObjectId(oId) }, { "$set": { "prove_img": imgUrl } }] })
+#     return redirect('order')
+#   else:
+#     return redirect('login')
+
 if __name__ == "__main__":
- app.run()
+ app.run(debug=True)
