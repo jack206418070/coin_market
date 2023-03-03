@@ -8,7 +8,9 @@ from bson.objectid import ObjectId
 from form_verify import Fverify
 from db_catch import DB
 import hashlib
-
+import random
+# import json
+# import pandas as pd
 # from flask_wtf import FlaskForm
 # from flask_wtf.csrf import CSRFProtect
 
@@ -16,6 +18,14 @@ import hashlib
 # key = 'iLufaMySuperSecretKey'
 # uri = pyotp.totp.TOTP(key).provisioning_uri(name="BTPay", issuer_name="iLufa App")
 # print(uri)
+
+
+# df = pd.read_excel('./adress.xlsx', sheet_name='簡體')
+# json_data = df.to_json(orient='records', force_ascii=False)
+
+# with open('example.json', 'w') as file:
+#   file.write(json_data)
+
 
 # qrcode.make(uri).save('totp.png')
 basedir = os.path.abspath(os.path.dirname(__file__))  # 獲取當前檔案所在目錄
@@ -45,6 +55,49 @@ db = DB(client, 'market')
 
 # totp key 
 key = 'iLufaMySuperSecretKey'
+  
+
+
+
+
+# 將檔案轉為 json 存入資料庫
+# jsonFile = open('example.json', 'r')
+# jsonF = json.load(jsonFile)
+# i = 1
+# for doc in jsonF:
+#   data = {
+#     'name': doc['姓名'],
+#     'phone': '0' + str(doc['電話']),
+#     'address': doc['地址'].replace('\t', ''),
+#     'number': i
+#   }
+#   i = i + 1
+#   dbs.fake_data.insert_one(data)
+
+
+
+# jsonFile = open('example.json', 'r')
+# jsonF = json.load(jsonFile)
+# i = 1
+# for col in jsonF:
+#   data = {
+#     'address': col['地址'].strip().replace('	', ''),
+#     'name': col['姓名'],
+#     'phone': str(col['電話']),
+#     'number': i
+#   }
+#   db.insert_one({ "collect": "fake_data", "condition": [data] })
+#   i = i + 1
+
+
+# 取得隨機數字
+def random_number(count):
+  number_list = []
+  for i in range(999):
+    number_list.append(i)
+  random.shuffle(number_list)
+  return number_list[0:count]
+
 
 # 驗證動態驗證碼
 def verify_potp(potp):
@@ -294,6 +347,30 @@ def admin_user():
   else:
     return redirect('admin_login')
 
+# 管理員-收支紀錄
+@app.route('/admin_log', methods=['GET', 'POST'])
+def admin_log():
+  if 'display_name' in session and session['display_name'] == '最高管理者':
+    record_data = []
+    record_find = dbs.log_record.find({})
+    for doc in record_find:
+      record_data.append(doc)
+    print(record_data)
+    # record_data = db.find_all({ "collect": "log_record", "condition": [{}] })
+    return render_template('admin_log.html', record_data=record_data)
+  else:
+    return redirect('admin_login')
+
+# 管理員-訂單生成
+@app.route('/admin_fakeData')
+def admin_fakeData():
+  if 'display_name' in session and session['display_name'] == '最高管理者':
+    return render_template('admin_fakeData.html')
+  else:
+    return redirect('admin_login')
+    
+
+
 # 業務登入頁面
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -344,15 +421,10 @@ def register():
     bankName = request.form['bankName']
     bankAccount = request.form['bankAccount']
 
-    # account_repeat = db.find_one({ "collect": "member", "condition": [ { "account": account } ] })
+    account_repeat = db.find_one({ "collect": "member", "condition": [ { "account": account } ] })
 
-    # if account_repeat != None:
-    #   return redirect('register')
-
-    account_repeat = dbs.member.find_one({ "account": account })
     if account_repeat != None:
       return redirect('register')
-
 
     # 取得使用者 圖片資料
     f_arr = []
@@ -429,23 +501,13 @@ def resetPassword():
   else:
     return redirect('login')
 
-
 @app.route('/order_list')
 def order_list():
   if 'id' in session:
     return render_template('order_custom.html')
   else:
     return redirect('login')
-
-# 創立訂單頁面
-# @app.route('/order_list')
-# def order_list():
-#   if 'id' in session:
-#     return render_template('order_custom.html')
-#   else:
-#     return register('login')
-
-
+  
 # 業務購物車頁面    
 @app.route('/cart/<product>')
 def cart(product):
@@ -495,7 +557,8 @@ def cart(product):
             "product_id": ObjectId(product),
             "mid": ObjectId(request.args.get('mid')),
             "is_paid": False,
-            "prove_img": ""
+            "prove_img": "",
+            "status": False
           }
         )
 
@@ -527,42 +590,74 @@ def cart(product):
 @app.route('/order')
 def order():
   if 'id' in session:
+    if request.args.get('method') == 'success':
+      oId = request.args.get('oId')
+      pId = request.args.get('pId')
+      product_data = dbs.product.find_one({
+          "_id": ObjectId(pId),
+      })
+      order_data = dbs.order.find_one({
+          "_id": ObjectId(oId),
+      })
+      if order_data == None or product_data == None:
+        return redirect('order')
+      member_data = dbs.member.find_one({
+        "_id": ObjectId(session['id']),
+      })
+      record_data = {
+        "m_name": member_data['name'],
+        "oId": oId,
+        "in_coin": 0,
+        "out_coin": product_data['price']
+      }
+      dbs.log_record.insert_one(record_data)
+      dbs.order.update_one(
+        {
+          "_id": ObjectId(oId)
+        },
+        {
+          "$set": {
+            "status": True
+          }
+        }
+      )
+      return redirect('order')
+
+      # # product_data =  db.find_one({ 'collect': 'product', 'condition': [{ "_id": ObjectId(pId) }] })
+      # # order_data = db.find_one({ 'collect': 'order', 'condition': [{ "_id": ObjectId(oId) }] })
+      # if order_data == None or product_data == None:
+      #   redirect('order')
+      # member_data = db.find_one({ 'collect': 'member', 'condition': [{ "_id": ObjectId(session['id']) }] })
+      # record_data = {
+      #   "m_name": member_data['name'],
+      #   "oId": oId,
+      #   "in_coin": 0,
+      #   "out_coin": product_data['price'],
+      # }
+      # db.insert_one({ "collect": "log_record", "condition": [record_data] })
+      # db.update_one({ "collect": "order", "condition": [{ "_id": ObjectId(oId) }, { "$set": { "status": True } }] })
+      # return redirect('order')
     order_data = db.aggregate({ "collect": "order", "condition": [[ { "$match": { "mid": ObjectId(session["id"]) } } ,{ "$lookup": { "from": "product", "localField": "product_id", "foreignField": "_id", "as": "product" } } ]] })
     return render_template('order.html', order_data=order_data)
   else:
     return redirect('login')
 
-
-
 @app.route('/order_prove', methods=['POST'])
 def order_prove():
+
   if 'id' in session:
+    member_data = db.find_one({ "collect": "member", "condition": [{ "_id": ObjectId(session['id']) }] })
+    account = member_data["account"]
     oId = request.form['oId']
     f = request.files['prove_img']
-    mid = session['id']
-    member_data = dbs.member.find_one({ "_id": ObjectId(mid) })
-    account = member_data['account']
     imgUrl = ''
-
     if f and allowed_file(f.filename):
       file_path = basedir + '/public/images/' + account
       if not os.path.isdir(file_path):
         os.mkdir(file_path)
       f.save(os.path.join(file_path, f.filename))
       imgUrl = f'/images/{account}/{f.filename}'
-    
-    dbs.order.update_one(
-      {
-        "_id": ObjectId(oId)
-      },
-      {
-        "$set": {
-          "prove_img": imgUrl
-        }
-      }
-    )
-
-
+    db.update_one({ "collect": "order", "condition": [{ "_id": ObjectId(oId) }, { "$set": { "prove_img": imgUrl } }] })
     return redirect('order')
   else:
     return redirect('login')
@@ -570,24 +665,20 @@ def order_prove():
 
 
 
-# @app.route('/order_prove', methods=['POST'])
-# def order_prove():
-#   if 'id' in session:
-#     member_data = db.find_one({ "collect": "member", "condition": [{ "_id": ObjectId(session['id']) }] })
-#     account = member_data["account"]
-#     oId = request.form['oId']
-#     f = request.files['prove_img']
-#     imgUrl = ''
-#     if f and allowed_file(f.filename):
-#       file_path = basedir + '/public/images/' + account
-#       if not os.path.isdir(file_path):
-#         os.mkdir(file_path)
-#       f.save(os.path.join(file_path, f.filename))
-#       imgUrl = f'/images/{account}/{f.filename}'
-#     db.update_one({ "collect": "order", "condition": [{ "_id": ObjectId(oId) }, { "$set": { "prove_img": imgUrl } }] })
-#     return redirect('order')
-#   else:
-#     return redirect('login')
 
+@app.route('/api/<name>', methods=['GET', 'POST'])
+def api(name):
+  if name == 'fake_data' and request.method == 'GET':
+    count = int(request.args.get('count'))
+    fake_data = []
+    number_list = random_number(count)
+    for number in number_list:
+      fake_find = dbs.fake_data.find_one({ "number": number }, { '_id': 0 })
+      fake_data.append(fake_find)
+    return jsonify(fake_data)
+  else:
+    return redirect(url_for('login'))
+  
+  
 if __name__ == "__main__":
  app.run(debug=True)

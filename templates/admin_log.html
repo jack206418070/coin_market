@@ -39,7 +39,7 @@
   th,
   td {
     border: 1px solid #000;
-    width: calc(100% / 9);
+    width: calc(100% / 4);
     padding: 8px;
     text-align: center;
   }
@@ -114,40 +114,24 @@
 {% endblock %}
 
 {% block main %}
-<h1>訂單管理</h1>
+<h1>收支紀錄</h1>
 <div class="verify">
   <table>
     <thead>
       <tr>
-        <th>訂單編號</th>
-        <th>訂購人帳戶</th>
-        <th>收款銀行</th>
-        <th>產品公司</th>
-        <th>公司帳戶</th>
-        <th>狀態</th>
-        <th>功能</th>
+        <th>紀錄姓名</th>
+        <th>紀錄訂單編號</th>
+        <th>支出代幣</th>
+        <th>收入代幣</th>
       </tr>
     </thead>
     <tbody>
-      {% for item in order_data %}
+      {% for item in record_data %}
       <tr>
-        <td>{{ item.member[0].name }}</td>
-        <td>{{ item.member[0].bankAccount }}</td>
-        <td>{{ item.product[0].name }}</td>
-        <td>{{ item.product[0].factory_name }}</td>
-        <td>{{ item.product[0].factory_bank }}</td>
-
-        <td>
-          {% if item.is_paid == true %}
-            已付款
-          {% else %}
-            未付款
-          {% endif %}
-        </td>
-        <td>
-          <a href="/admin_order?methods=post&oid={{ item._id }}">確認收款</a>
-          <a href="/admin_member?methods=delete&oid={{ item._id }}">刪除訂單</a>
-        </td>
+        <td>{{ item.m_name }}</td>
+        <td>{{ item.oId }}</td>
+        <td>{{ item.out_coin }}</td>
+        <td>{{ item.in_coin }}</td>
       </tr>
       {% endfor %}
     </tbody>
